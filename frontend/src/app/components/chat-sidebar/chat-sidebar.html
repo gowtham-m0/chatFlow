@@ -1,0 +1,87 @@
+<div class="h-full flex flex-col">
+  <!-- Header / User Profile -->
+  <div class="flex items-center justify-between px-5 py-4 border-b border-[#1e2028]">
+    <div class="flex items-center gap-3">
+      <div class="relative">
+        <img
+          [src]="authService.currentLoggedUser?.profileImage"
+          alt="Your profile"
+          class="h-9 w-9 rounded-full object-cover"
+        />
+        <div class="absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full bg-[#0d9488] border-[2.5px] border-[#16181d]"></div>
+      </div>
+      <div>
+        <div class="font-semibold text-white text-[13px]">
+          {{ authService.currentLoggedUser?.fullName | titlecase }}
+        </div>
+        <div class="text-[11px] text-[#5c5f6b]">{{ authService.currentLoggedUser?.userName }}</div>
+      </div>
+    </div>
+    <button (click)="logout()"
+      class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[12px] font-medium text-[#5c5f6b] hover:text-[#ef4444] hover:bg-[#ef4444]/8 border border-[#1e2028] hover:border-[#ef4444]/20 transition-all cursor-pointer"
+      style="background: transparent;">
+      <i class="material-icons text-[16px]">logout</i>
+      <span>Sign out</span>
+    </button>
+  </div>
+
+  <!-- Search -->
+  <div class="px-4 py-3">
+    <div class="flex items-center gap-2 px-3 py-2 rounded-lg" style="background: #1e2028;">
+      <i class="material-icons text-[16px] text-[#5c5f6b]">search</i>
+      <input
+        placeholder="Search people..."
+        type="text"
+        class="bg-transparent border-0 text-sm text-[#c4c7d0] placeholder-[#5c5f6b] focus:outline-none w-full"
+      />
+    </div>
+  </div>
+
+  <!-- Section Label -->
+  <div class="px-5 py-2">
+    <p class="text-[11px] font-semibold text-[#5c5f6b] uppercase tracking-widest">Direct messages</p>
+  </div>
+
+  <!-- User List -->
+  <div class="flex-1 overflow-y-auto px-2">
+    @for (user of chatService.onlineUsers(); track user) {
+      <div
+        (click)="openChatWindow(user)"
+        [class]="chatService.currentOpenedChat()?.id === user.id
+          ? 'bg-[#1e2028] border-l-2 border-l-[#0d9488]'
+          : 'border-l-2 border-l-transparent hover:bg-[#1a1c22]'"
+        class="flex items-center gap-3 px-4 py-2.5 cursor-pointer transition-colors">
+        <div class="relative flex-shrink-0">
+          <img
+            [src]="user.profileImage"
+            class="h-9 w-9 rounded-full object-cover"
+            alt=""
+          />
+          @if(user.isOnline){
+            <div class="absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full bg-[#0d9488] border-[2.5px] border-[#16181d]"></div>
+          }
+        </div>
+        <div class="flex-1 min-w-0">
+          <div class="flex items-center justify-between">
+            <span class="text-[13px] font-medium text-[#e4e5ea] truncate">{{ user.fullName | titlecase }}</span>
+            
+            @if(user.unreadCount > 0 && !user.isTyping) {
+              <span class="bg-[#0d9488] text-white text-[10px] font-bold h-[18px] min-w-[18px] flex items-center justify-center rounded-full px-1 ml-2">
+                {{ user.unreadCount }}
+              </span>
+            }
+            
+          </div>
+          @if(user.unreadCount > 0) {
+            <p class="text-[11px] text-[#0d9488] font-medium mt-0.5 truncate">{{ user.unreadCount }} new</p>
+          }@else if (user.isTyping) {
+             <app-typing-indicator />
+          }
+           @else {
+            <p class="text-[11px] text-[#5c5f6b] mt-0.5">{{ user.isOnline ? 'Active now' : 'Offline' }}</p>
+          }
+        </div>
+      </div>
+    }
+  </div>
+</div>

@@ -1,0 +1,99 @@
+<form
+#userForm = "ngForm"
+(ngSubmit)="login()"
+class="flex h-screen">
+
+    <!-- Left: Brand Panel -->
+    <div class="brand-panel hidden md:flex w-1/2 flex-col justify-between p-12 text-white relative z-10">
+        <div>
+            <div class="flex items-center gap-2 mb-1">
+                <div class="w-9 h-9 bg-white/20 rounded-lg flex items-center justify-center">
+                    <i class="material-icons text-white text-xl">bolt</i>
+                </div>
+                <span class="text-xl font-bold tracking-tight">ChatFlow</span>
+            </div>
+        </div>
+
+        <div class="max-w-md">
+            <h1 class="text-4xl font-bold leading-tight mb-4">
+                Where teams <br/>communicate <span class="text-white/80">in real time.</span>
+            </h1>
+            <p class="text-white/70 text-base leading-relaxed mb-8">
+                Instant messaging, file sharing, and video calls — everything your team needs to stay connected and productive.
+            </p>
+
+            <div class="space-y-3">
+                <div class="feature-card rounded-xl p-4 flex items-center gap-4">
+                    <div class="w-10 h-10 rounded-lg bg-white/10 flex items-center justify-center flex-shrink-0">
+                        <i class="material-icons text-lg">speed</i>
+                    </div>
+                    <div>
+                        <p class="font-semibold text-sm">Lightning fast</p>
+                        <p class="text-white/60 text-xs">Messages delivered instantly with WebSocket technology</p>
+                    </div>
+                </div>
+                <div class="feature-card rounded-xl p-4 flex items-center gap-4">
+                    <div class="w-10 h-10 rounded-lg bg-white/10 flex items-center justify-center flex-shrink-0">
+                        <i class="material-icons text-lg">shield</i>
+                    </div>
+                    <div>
+                        <p class="font-semibold text-sm">Secure by design</p>
+                        <p class="text-white/60 text-xs">End-to-end encryption keeps your conversations private</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <p class="text-white/40 text-xs">&copy; 2026 ChatFlow. Built for modern teams.</p>
+    </div>
+
+    <!-- Right: Login Form -->
+    <div class="flex-1 flex items-center justify-center p-8" style="background: #111318;">
+        <div class="w-full max-w-sm">
+            <div class="mb-8">
+                <div class="md:hidden flex items-center gap-2 mb-6">
+                    <div class="w-8 h-8 bg-teal-500 rounded-lg flex items-center justify-center">
+                        <i class="material-icons text-white text-lg">bolt</i>
+                    </div>
+                    <span class="text-lg font-bold text-white">ChatFlow</span>
+                </div>
+                <h2 class="text-2xl font-bold text-white">Sign in</h2>
+                <p class="text-[#8b8fa3] text-sm mt-1">Enter your credentials to access your account</p>
+            </div>
+
+            <div class="space-y-1">
+                <mat-form-field class="w-full" appearance="fill">
+                    <mat-label>Email address</mat-label>
+                    <input required #emailModel="ngModel" matInput name="email" [(ngModel)]="email" placeholder="you@company.com">
+                    @if(emailModel.errors?.['required']){
+                        <mat-error>Email is required</mat-error>
+                    }
+                </mat-form-field>
+
+                <mat-form-field class="w-full" appearance="fill">
+                    <mat-label>Password</mat-label>
+                    <input required #passwordModel="ngModel" matInput [type]="hide() ? 'password' : 'text'" name="password" [(ngModel)]="password" placeholder="••••••••">
+                    <mat-icon matSuffix (click)="togglePassword($event)" class="cursor-pointer !text-[#8b8fa3] hover:!text-white transition-colors">
+                        {{ hide() ? 'visibility_off' : 'visibility' }}
+                    </mat-icon>
+                    @if(passwordModel.errors?.['required']){
+                        <mat-error>Password is required</mat-error>
+                    }
+                </mat-form-field>
+
+                <button
+                    [disabled]="!userForm.valid"
+                    type="submit"
+                    class="w-full mt-3 text-white font-semibold rounded-lg py-3 text-sm disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer active:scale-[0.98] transition-all"
+                    style="background: #0d9488;">
+                    Sign in
+                </button>
+
+                <p class="text-sm text-center text-[#8b8fa3] !pt-6">
+                    New to ChatFlow?
+                    <a [routerLink]="'/register'" class="text-[#0d9488] hover:text-[#14b8a6] font-semibold">Create an account</a>
+                </p>
+            </div>
+        </div>
+    </div>
+</form>

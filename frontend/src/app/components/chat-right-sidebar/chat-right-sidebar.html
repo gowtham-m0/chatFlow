@@ -1,0 +1,51 @@
+@if(chatService.currentOpenedChat()){
+    <div class="h-full flex flex-col p-5">
+        <!-- Profile -->
+        <div class="flex flex-col items-center pt-6 pb-5 border-b border-[#1e2028]">
+            <img class="rounded-full w-20 h-20 object-cover mb-3"
+                [src]="chatService.currentOpenedChat()?.profileImage" alt="profile">
+            <p class="text-[15px] font-semibold text-white">
+                {{chatService.currentOpenedChat()?.fullName | titlecase}}
+            </p>
+            <p class="text-xs text-[#5c5f6b] mt-0.5">
+                {{'@' + chatService.currentOpenedChat()?.userName}}
+            </p>
+            <div class="mt-2 flex items-center gap-1.5">
+                <div class="h-2 w-2 rounded-full"
+                    [class.bg-[#0d9488]]="chatService.status(chatService.currentOpenedChat()?.userName!) === 'Online'"
+                    [class.bg-[#3a3d47]]="chatService.status(chatService.currentOpenedChat()?.userName!) !== 'Online'">
+                </div>
+                <span class="text-[11px] font-medium"
+                    [class.text-[#0d9488]]="chatService.status(chatService.currentOpenedChat()?.userName!) === 'Online'"
+                    [class.text-[#5c5f6b]]="chatService.status(chatService.currentOpenedChat()?.userName!) !== 'Online'">
+                    {{ chatService.status(chatService.currentOpenedChat()?.userName!) }}
+                </span>
+            </div>
+        </div>
+
+        <!-- Details -->
+        <div class="pt-4 space-y-4">
+            <p class="text-[11px] font-semibold text-[#5c5f6b] uppercase tracking-widest">Details</p>
+
+            <div class="flex items-center gap-3">
+                <i class="material-icons text-[16px] text-[#5c5f6b]">alternate_email</i>
+                <div>
+                    <p class="text-[11px] text-[#5c5f6b]">Username</p>
+                    <p class="text-[13px] text-[#c4c7d0]">{{chatService.currentOpenedChat()?.userName}}</p>
+                </div>
+            </div>
+
+            <div class="flex items-center gap-3">
+                <i class="material-icons text-[16px] text-[#5c5f6b]">person_outline</i>
+                <div>
+                    <p class="text-[11px] text-[#5c5f6b]">Full name</p>
+                    <p class="text-[13px] text-[#c4c7d0]">{{chatService.currentOpenedChat()?.fullName | titlecase}}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+}@else {
+    <div class="flex flex-col h-full justify-center items-center">
+        <p class="text-[#3a3d47] text-xs">No chat selected</p>
+    </div>
+}

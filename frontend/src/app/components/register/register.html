@@ -1,0 +1,134 @@
+<form
+#userForm = "ngForm"
+(ngSubmit)="register()"
+class="flex h-screen">
+
+    <!-- Left: Brand Panel -->
+    <div class="brand-panel hidden md:flex w-1/2 flex-col justify-between p-12 text-white relative z-10">
+        <div>
+            <div class="flex items-center gap-2">
+                <div class="w-9 h-9 bg-white/20 rounded-lg flex items-center justify-center">
+                    <i class="material-icons text-white text-xl">bolt</i>
+                </div>
+                <span class="text-xl font-bold tracking-tight">ChatFlow</span>
+            </div>
+        </div>
+
+        <div class="max-w-md">
+            <h1 class="text-4xl font-bold leading-tight mb-4">
+                Get started <br/>in <span class="text-white/80">three simple steps.</span>
+            </h1>
+            <p class="text-white/70 text-base leading-relaxed mb-8">
+                Create your account and start connecting with your team in minutes. No credit card required.
+            </p>
+
+            <div class="space-y-3">
+                <div class="step-item rounded-xl p-4 flex items-center gap-4">
+                    <div class="w-10 h-10 rounded-full bg-white/15 flex items-center justify-center flex-shrink-0 font-bold text-sm">
+                        1
+                    </div>
+                    <div>
+                        <p class="font-semibold text-sm">Create your profile</p>
+                        <p class="text-white/60 text-xs">Pick a username and upload your photo</p>
+                    </div>
+                </div>
+                <div class="step-item rounded-xl p-4 flex items-center gap-4">
+                    <div class="w-10 h-10 rounded-full bg-white/15 flex items-center justify-center flex-shrink-0 font-bold text-sm">
+                        2
+                    </div>
+                    <div>
+                        <p class="font-semibold text-sm">Invite your team</p>
+                        <p class="text-white/60 text-xs">Share ChatFlow with teammates to get started</p>
+                    </div>
+                </div>
+                <div class="step-item rounded-xl p-4 flex items-center gap-4">
+                    <div class="w-10 h-10 rounded-full bg-white/15 flex items-center justify-center flex-shrink-0 font-bold text-sm">
+                        3
+                    </div>
+                    <div>
+                        <p class="font-semibold text-sm">Start chatting</p>
+                        <p class="text-white/60 text-xs">Real-time messaging, video calls and more</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <p class="text-white/40 text-xs">&copy; 2026 ChatFlow. Built for modern teams.</p>
+    </div>
+
+    <!-- Right: Register Form -->
+    <div class="flex-1 flex items-center justify-center p-8 overflow-y-auto" style="background: #111318;">
+        <div class="w-full max-w-sm">
+            <div class="mb-6">
+                <div class="md:hidden flex items-center gap-2 mb-6">
+                    <div class="w-8 h-8 bg-teal-500 rounded-lg flex items-center justify-center">
+                        <i class="material-icons text-white text-lg">bolt</i>
+                    </div>
+                    <span class="text-lg font-bold text-white">ChatFlow</span>
+                </div>
+                <h2 class="text-2xl font-bold text-white">Create account</h2>
+                <p class="text-[#8b8fa3] text-sm mt-1">Start your free ChatFlow experience</p>
+            </div>
+
+            <div class="space-y-1">
+                <mat-form-field class="w-full" appearance="fill">
+                    <mat-label>Full name</mat-label>
+                    <input required #fullNameModel="ngModel" matInput name="fullName" [(ngModel)]="fullName" placeholder="John Doe">
+                    @if(fullNameModel.errors?.['required']){
+                        <mat-error>Full Name is required</mat-error>
+                    }
+                </mat-form-field>
+
+                <mat-form-field class="w-full" appearance="fill">
+                    <mat-label>Username</mat-label>
+                    <input required #userNameModel="ngModel" matInput name="userName" [(ngModel)]="userName" placeholder="johndoe">
+                    @if(userNameModel.errors?.['required']){
+                        <mat-error>Username is required</mat-error>
+                    }
+                </mat-form-field>
+
+                <mat-form-field class="w-full" appearance="fill">
+                    <mat-label>Email address</mat-label>
+                    <input required #emailModel="ngModel" matInput name="email" [(ngModel)]="email" placeholder="you@company.com">
+                    @if(emailModel.errors?.['required']){
+                        <mat-error>Email is required</mat-error>
+                    }
+                </mat-form-field>
+
+                <mat-form-field class="w-full" appearance="fill">
+                    <mat-label>Password</mat-label>
+                    <input required #passwordModel="ngModel" matInput [type]="hide() ? 'password' : 'text'" name="password" [(ngModel)]="password" placeholder="Min. 8 characters">
+                    <mat-icon matSuffix (click)="togglePassword($event)" class="cursor-pointer !text-[#8b8fa3] hover:!text-white transition-colors">
+                        {{ hide() ? 'visibility_off' : 'visibility' }}
+                    </mat-icon>
+                    @if(passwordModel.errors?.['required']){
+                        <mat-error>Password is required</mat-error>
+                    }
+                </mat-form-field>
+
+                <input hidden (change)="onFileSelected($event)" #pic type="file" placeholder="Profile Image" />
+                <button
+                    (click)="pic.click()"
+                    type="button"
+                    class="w-full flex items-center gap-2 justify-center mb-3 border border-dashed border-[#2a2d35] hover:border-[#0d9488] text-[#8b8fa3] hover:text-[#0d9488] rounded-lg py-2.5 transition-all cursor-pointer text-sm"
+                    style="background: rgba(255,255,255,0.02);">
+                    <mat-icon class="!text-[18px]">cloud_upload</mat-icon>
+                    <span class="font-medium">Upload profile photo</span>
+                </button>
+
+                <button
+                    [disabled]="!userForm.valid"
+                    type="submit"
+                    class="w-full text-white font-semibold rounded-lg py-3 text-sm disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer active:scale-[0.98] transition-all"
+                    style="background: #0d9488;">
+                    Create account
+                </button>
+
+                <p class="text-sm text-center text-[#8b8fa3] !pt-4">
+                    Already have an account?
+                    <a routerLink="/login" class="text-[#0d9488] hover:text-[#14b8a6] font-semibold">Sign in</a>
+                </p>
+            </div>
+        </div>
+    </div>
+</form>

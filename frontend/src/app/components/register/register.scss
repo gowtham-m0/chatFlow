@@ -1,0 +1,36 @@
+:host {
+  display: block;
+  height: 100vh;
+  background: #111318;
+}
+
+.brand-panel {
+  background: linear-gradient(160deg, #2563eb 0%, #0891b2 50%, #0d9488 100%);
+  position: relative;
+  overflow: hidden;
+}
+
+.brand-panel::before {
+  content: '';
+  position: absolute;
+  top: -40%;
+  left: -30%;
+  width: 100%;
+  height: 100%;
+  background: radial-gradient(circle, rgba(255,255,255,0.06) 0%, transparent 50%);
+}
+
+.brand-panel::after {
+  content: '';
+  position: absolute;
+  bottom: -40%;
+  right: -20%;
+  width: 80%;
+  height: 80%;
+  background: radial-gradient(circle, rgba(0,0,0,0.12) 0%, transparent 50%);
+}
+
+.step-item {
+  background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(255,255,255,0.1);
+}

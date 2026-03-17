@@ -1,0 +1,67 @@
+@if(chatService.currentOpenedChat()){
+<div class="w-full h-full flex flex-col" style="background: #111318;" #chatBox>
+    <!-- Header -->
+    <div class="flex justify-between items-center border-b border-[#1e2028] px-5 py-3" style="background: #16181d;">
+        <div class="flex items-center gap-3">
+            <img [src]="chatService.currentOpenedChat()?.profileImage" [alt]="chatService.currentOpenedChat()?.fullName"
+                class="h-9 w-9 rounded-full object-cover" />
+            <div>
+                <span class="font-semibold text-[#e4e5ea] text-[13px] block">
+                    {{chatService.currentOpenedChat()?.fullName | titlecase}}
+                </span>
+                <span class="text-[11px] font-medium block"
+                    [class.text-[#0d9488]]="chatService.status(chatService.currentOpenedChat()?.userName!) === 'Online' || chatService.status(chatService.currentOpenedChat()?.userName!) === 'Typing...'"
+                    [class.text-[#5c5f6b]]="chatService.status(chatService.currentOpenedChat()?.userName!) !== 'Online' && chatService.status(chatService.currentOpenedChat()?.userName!) !== 'Typing...'">
+                    {{chatService.status(chatService.currentOpenedChat()?.userName!)}}
+                </span>
+            </div>
+        </div>
+        <div class="flex items-center gap-0.5">
+            <button
+                class="w-8 h-8 flex items-center justify-center rounded-md text-[#5c5f6b] hover:text-white hover:bg-[#1e2028] transition-all cursor-pointer">
+                <i class="material-icons text-[18px]">videocam</i>
+            </button>
+            <button (click)="closeChat()"
+                class="w-8 h-8 flex items-center justify-center rounded-md text-[#5c5f6b] hover:text-[#ef4444] hover:bg-[#ef4444]/8 transition-all cursor-pointer"
+                title="Close chat">
+                <i class="material-icons text-[18px]">close</i>
+            </button>
+        </div>
+    </div>
+
+    <!-- Messages -->
+    <div class="flex-1 overflow-hidden">
+        <app-chat-box />
+    </div>
+
+    <!-- Input -->
+    <div class="flex items-center gap-3 px-5 py-3 border-t border-[#1e2028]" style="background: #16181d;">
+        <button
+            class="w-8 h-8 flex items-center justify-center rounded-md text-[#5c5f6b] hover:text-white hover:bg-[#1e2028] transition-all cursor-pointer">
+            <i class="material-icons text-[18px]">add_circle_outline</i>
+        </button>
+        <div class="flex-1 flex items-center px-3 py-2 rounded-lg" style="background: #1e2028;">
+            <input type="text" [(ngModel)]="message" (input)="chatService.notifyTyping()" (keyup.enter)="sendMessage()"
+                class="flex-1 bg-transparent border-0 text-[13px] text-[#e4e5ea] placeholder-[#5c5f6b] focus:outline-none"
+                placeholder="Write a message..." />
+            <button
+                class="w-6 h-6 flex items-center justify-center text-[#5c5f6b] hover:text-white cursor-pointer ml-1">
+                <i class="material-icons text-[18px]">sentiment_satisfied_alt</i>
+            </button>
+        </div>
+        <button (click)="sendMessage()"
+            class="w-9 h-9 flex items-center justify-center rounded-lg transition-all cursor-pointer active:scale-95"
+            style="background: #0d9488; color: white;">
+            <i class="material-icons text-[18px]">send</i>
+        </button>
+    </div>
+</div>
+}@else {
+<div class="flex flex-col h-full justify-center items-center" style="background: #111318;">
+    <div class="w-12 h-12 bg-[#1e2028] rounded-xl flex items-center justify-center mb-4">
+        <i class="material-icons text-[24px] text-[#5c5f6b]">forum</i>
+    </div>
+    <h3 class="text-[#e4e5ea] font-semibold text-base">Your messages</h3>
+    <p class="text-[#5c5f6b] text-sm mt-1">Select a conversation from the sidebar</p>
+</div>
+}

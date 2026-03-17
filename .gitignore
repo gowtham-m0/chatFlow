@@ -12,7 +12,7 @@
 !**/wwwroot/uploads/.gitkeep
 *.user
 *.suo
-.vs/
+*.vs/
 
 # --- SQLite Database Rules ---
 # Ignores local database files in /backend
@@ -49,4 +49,4 @@ yarn-error.log*
 Thumbs.db
 .env
 .env.*
-
+
