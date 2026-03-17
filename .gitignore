@@ -1,0 +1,52 @@
+# ==========================================
+# Root .gitignore for Full-Stack Project 
+# (Applies to both /frontend and /backend)
+# ==========================================
+
+# --- .NET / Backend Rules ---
+# Ignores all bin/obj folders inside /backend
+**/[Bb]in/
+**/[Oo]bj/
+**/[Ll]og/
+**/wwwroot/uploads/*
+!**/wwwroot/uploads/.gitkeep
+*.user
+*.suo
+.vs/
+
+# --- SQLite Database Rules ---
+# Ignores local database files in /backend
+*.db
+*.db-shm
+*.db-wal
+
+# --- Node / Angular / Frontend Rules ---
+# Ignores all node_modules and build output in /frontend
+**/node_modules/
+**/.angular/
+**/dist/
+**/tmp/
+**/out-tsc/
+**/bazel-out/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.sass-cache/
+/coverage/
+
+# --- IDEs & Editor Rules ---
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+.history/
+.idea/
+*.sublime-workspace
+
+# --- OS & Environment Rules ---
+.DS_Store
+Thumbs.db
+.env
+.env.*
+
