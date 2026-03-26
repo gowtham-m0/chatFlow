@@ -37,8 +37,9 @@ export class VideoChat implements OnInit, OnDestroy {
   private subscriptions: Subscription[] = [];
 
   ngOnInit(): void {
-    this.setupPeerConnection();
+    // startConnection is now idempotent — safe to call every time the dialog opens
     this.signalRService.startConnection();
+    this.setupPeerConnection();
     this.setupSignalListeners();
     this.startLocalVideo();
   }
@@ -50,6 +51,7 @@ export class VideoChat implements OnInit, OnDestroy {
   // ─── SignalR listeners ──────────────────────────────────────────────────────
 
   setupSignalListeners() {
+    // Register 'CallEnded' directly on the hub connection if it exists
     this.signalRService.hubConnection?.on('CallEnded', () => {
       this.endCall();
     });
@@ -57,7 +59,13 @@ export class VideoChat implements OnInit, OnDestroy {
     const answerSub = this.signalRService.answerReceived.subscribe(async data => {
       if (data) {
         try {
-          await this.peerConnection.setRemoteDescription(new RTCSessionDescription(data.answer));
+          // Only process if peer connection is in the right state
+          if (
+            this.peerConnection.signalingState === 'have-local-offer' ||
+            this.peerConnection.signalingState === 'have-remote-pranswer'
+          ) {
+            await this.peerConnection.setRemoteDescription(new RTCSessionDescription(data.answer));
+          }
         } catch (e) {
           console.error('Error setting remote description (answer):', e);
         }
@@ -67,7 +75,10 @@ export class VideoChat implements OnInit, OnDestroy {
     const iceSub = this.signalRService.iceCandidateReceived.subscribe(async data => {
       if (data) {
         try {
-          await this.peerConnection.addIceCandidate(new RTCIceCandidate(data.candidate));
+          // Only add ICE candidates once remote description is set
+          if (this.peerConnection.remoteDescription) {
+            await this.peerConnection.addIceCandidate(new RTCIceCandidate(data.candidate));
+          }
         } catch (e) {
           console.error('Error adding ICE candidate:', e);
         }
@@ -83,6 +94,7 @@ export class VideoChat implements OnInit, OnDestroy {
     this.signalRService.incomingCall = false;
     this.signalRService.isCallActive = false;
     this.signalRService.sendEndCall(this.signalRService.remoteUserId);
+    this._stopLocalStream();
     this.dialogRef.close();
   }
 
@@ -97,7 +109,6 @@ export class VideoChat implements OnInit, OnDestroy {
       await this.peerConnection.setRemoteDescription(new RTCSessionDescription(offer));
       const answer = await this.peerConnection.createAnswer();
       await this.peerConnection.setLocalDescription(answer);
-      // send the answer (not the offer) to the remote peer
       this.signalRService.sendAnswer(this.signalRService.remoteUserId, answer);
     } catch (e) {
       console.error('Error accepting call:', e);
@@ -118,15 +129,7 @@ export class VideoChat implements OnInit, OnDestroy {
   }
 
   async endCall() {
-    // Stop local tracks first, before nulling the srcObject
-    const videoEl = this.localVideo?.nativeElement;
-    if (videoEl) {
-      const stream = videoEl.srcObject as MediaStream | null;
-      if (stream) {
-        stream.getTracks().forEach(track => track.stop());
-      }
-      videoEl.srcObject = null;
-    }
+    this._stopLocalStream();
 
     if (this.remoteVideo?.nativeElement) {
       this.remoteVideo.nativeElement.srcObject = null;
@@ -144,7 +147,7 @@ export class VideoChat implements OnInit, OnDestroy {
     this.dialogRef.close();
   }
 
-  /** Close dialog when camera is unavailable (no active call). */
+  /** Close dialog when camera is unavailable — no active call to clean up. */
   closeDialog() {
     this.dialogRef.close();
   }
@@ -156,7 +159,7 @@ export class VideoChat implements OnInit, OnDestroy {
       iceServers: [
         { urls: 'stun:stun.l.google.com:19302' },
         { urls: 'stun:stun1.l.google.com:19302' },
-        { urls: 'stun:stun.services.mozilla.com' },
+        { urls: 'stun:stun2.l.google.com:19302' },
       ],
     });
 
@@ -167,13 +170,17 @@ export class VideoChat implements OnInit, OnDestroy {
     };
 
     this.peerConnection.ontrack = event => {
-      if (this.remoteVideo?.nativeElement) {
+      if (this.remoteVideo?.nativeElement && event.streams[0]) {
         this.remoteVideo.nativeElement.srcObject = event.streams[0];
       }
     };
 
     this.peerConnection.onconnectionstatechange = () => {
       console.log('PeerConnection state:', this.peerConnection.connectionState);
+    };
+
+    this.peerConnection.onsignalingstatechange = () => {
+      console.log('Signaling state:', this.peerConnection.signalingState);
     };
   }
 
@@ -183,6 +190,9 @@ export class VideoChat implements OnInit, OnDestroy {
 
       if (this.localVideo?.nativeElement) {
         this.localVideo.nativeElement.srcObject = stream;
+        // CRITICAL: mute local playback so you don't hear yourself
+        this.localVideo.nativeElement.muted = true;
+        this.localVideo.nativeElement.volume = 0;
       }
 
       stream.getTracks().forEach(track => {
@@ -201,6 +211,19 @@ export class VideoChat implements OnInit, OnDestroy {
       } else {
         this.cameraErrorMessage = 'Video call is not available on this device.';
       }
+    }
+  }
+
+  // ─── Helpers ────────────────────────────────────────────────────────────────
+
+  private _stopLocalStream() {
+    const videoEl = this.localVideo?.nativeElement;
+    if (videoEl) {
+      const stream = videoEl.srcObject as MediaStream | null;
+      if (stream) {
+        stream.getTracks().forEach(track => track.stop());
+      }
+      videoEl.srcObject = null;
     }
   }
 }
