@@ -1,4 +1,4 @@
-﻿namespace API.Hubs;
+namespace API.Hubs;
 
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SignalR;
@@ -9,7 +9,7 @@ public class VideoChatHub : Hub
 
     public async Task SendOffer(string receiverId, string offer)
     {
-        await Clients.User(receiverId).SendAsync("ReceiverOffer", Context.UserIdentifier, offer);
+        await Clients.User(receiverId).SendAsync("ReceiveOffer", Context.UserIdentifier, offer);
     }
 
     public async Task SendAnswer(string receiverId, string answer)

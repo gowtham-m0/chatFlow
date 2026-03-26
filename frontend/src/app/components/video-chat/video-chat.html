@@ -1,43 +1,105 @@
-<div class="relative h-full w-full">
-  <video
-    class="w-32 absolute right-5 top-4 h-52 object-cover border-red-500 border-2 rounded-lg"
-    #localVideo
-    autoplay
-    [playsInline]=""
-  ></video>
-  <video class="w-full h-full object-cover" #remoteVideo autoplay [playsInline]=""></video>
-  <div class="absolute bottom-10 left-0 right-0 z-50 flex justify-center space-x-3 p-4">
-    @if (this.signalRService.incomingCall) {
-      <button (click)="acceptCall()"
-        class="bg-green-500 flex items-center gap-2 hover:bg-gray-700 shadow-xl rounded-full text-white font-bold py-2"
-      >
-        <mat-icon> call </mat-icon>
-        Accept
-      </button>
-      <button (click)="declineCall()"
-        class="bg-red-500 flex items-center gap-2 hover:bg-red-900 shadow-xl rounded-full text-white font-bold py-2"
-      >
-        <mat-icon> call_end </mat-icon>
-        Decline
-      </button>
-    }
-    @if(!this.signalRService.incomingCall && !signalRService.isCallActive){
-        <button (click)="startCall()"
-      class="bg-green-500 flex items-center gap-2 hover:bg-gray-700 shadow-xl rounded-full text-white font-bold py-2"
+<!-- ── Camera / Microphone unavailable state ──────────────────────────── -->
+@if (cameraUnavailable) {
+  <div class="no-camera-overlay relative flex flex-col items-center justify-center h-full w-full text-center px-6">
+
+    <!-- Close button (top-right) -->
+    <button
+      (click)="closeDialog()"
+      class="absolute top-3 right-3 w-8 h-8 flex items-center justify-center rounded-full bg-white/10 hover:bg-white/20 text-white transition-all"
+      title="Close"
     >
-      <mat-icon> call </mat-icon>
-      Start Call
+      <mat-icon style="font-size:18px;line-height:18px;">close</mat-icon>
     </button>
-    }
-    @if(!this.signalRService.incomingCall)
-    {
-        <button (click)="endCall()"
-        class="bg-red-500 flex items-center gap-2 hover:bg-red-900 shadow-xl rounded-full text-white font-bold py-2"
-      >
-        <mat-icon> call_end </mat-icon>
-        End Call
-      </button>
-    }
-    
+
+    <!-- Animated no-video icon -->
+    <div class="pulse-ring w-20 h-20 rounded-full flex items-center justify-center mb-5"
+         style="background: rgba(239,68,68,0.15); border: 2px solid rgba(239,68,68,0.35);">
+      <mat-icon style="font-size:36px;width:36px;height:36px;color:#ef4444;">videocam_off</mat-icon>
+    </div>
+
+    <h2 class="text-white font-semibold text-base mb-2">Video Call Unavailable</h2>
+    <p class="text-[#9ca3af] text-sm leading-relaxed">{{ cameraErrorMessage }}</p>
+
+    <button
+      (click)="closeDialog()"
+      class="mt-7 px-5 py-2 rounded-lg text-sm font-semibold text-white transition-all active:scale-95"
+      style="background: linear-gradient(135deg,#ef4444,#b91c1c);"
+    >
+      Close
+    </button>
   </div>
-</div>
+}
+
+<!-- ── Normal video call UI ───────────────────────────────────────────── -->
+@if (!cameraUnavailable) {
+  <div class="relative h-full w-full" style="background:#0d0f14;">
+
+    <!-- Remote video (full screen) -->
+    <video
+      class="w-full h-full object-cover"
+      #remoteVideo
+      autoplay
+      [playsInline]="true"
+    ></video>
+
+    <!-- Local video (picture-in-picture) -->
+    <video
+      class="w-32 h-44 absolute right-4 top-4 object-cover rounded-xl border-2 shadow-xl"
+      style="border-color: rgba(13,148,136,0.7);"
+      #localVideo
+      autoplay
+      muted
+      [playsInline]="true"
+    ></video>
+
+    <!-- Controls overlay -->
+    <div class="absolute bottom-8 left-0 right-0 z-50 flex justify-center items-center gap-3 px-4">
+
+      <!-- Incoming call: Accept / Decline -->
+      @if (signalRService.incomingCall) {
+        <button
+          (click)="acceptCall()"
+          class="flex items-center gap-2 px-4 py-2 rounded-full shadow-xl font-semibold text-sm text-white transition-all active:scale-95"
+          style="background:#16a34a;"
+        >
+          <mat-icon style="font-size:18px;width:18px;height:18px;">call</mat-icon>
+          Accept
+        </button>
+
+        <button
+          (click)="declineCall()"
+          class="flex items-center gap-2 px-4 py-2 rounded-full shadow-xl font-semibold text-sm text-white transition-all active:scale-95"
+          style="background:#dc2626;"
+        >
+          <mat-icon style="font-size:18px;width:18px;height:18px;">call_end</mat-icon>
+          Decline
+        </button>
+      }
+
+      <!-- Not in a call yet: Start Call -->
+      @if (!signalRService.incomingCall && !signalRService.isCallActive) {
+        <button
+          (click)="startCall()"
+          class="flex items-center gap-2 px-5 py-2 rounded-full shadow-xl font-semibold text-sm text-white transition-all active:scale-95"
+          style="background:#16a34a;"
+        >
+          <mat-icon style="font-size:18px;width:18px;height:18px;">call</mat-icon>
+          Start Call
+        </button>
+      }
+
+      <!-- Always show End Call when not in incoming-call state -->
+      @if (!signalRService.incomingCall) {
+        <button
+          (click)="endCall()"
+          class="flex items-center gap-2 px-5 py-2 rounded-full shadow-xl font-semibold text-sm text-white transition-all active:scale-95"
+          style="background:#dc2626;"
+        >
+          <mat-icon style="font-size:18px;width:18px;height:18px;">call_end</mat-icon>
+          End Call
+        </button>
+      }
+
+    </div>
+  </div>
+}

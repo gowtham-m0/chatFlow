@@ -39,7 +39,7 @@ export class ChatWindow {
     this.dialog.open(VideoChat,{
       width: "400px",
       height: "600px",
-      disableClose: true,
+      disableClose: false,
       autoFocus: false
     })
   }

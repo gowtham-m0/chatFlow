@@ -38,11 +38,15 @@ export class VideoChatService {
       .start()
       .catch((err)=> console.error("SignalRConnectionError",err));
 
-    this.hubConnection.on("ReceiveOffer",(sendId, offer)=>{
+    this.hubConnection.on("ReceiveOffer",(sendId: string, offerStr: string)=>{
+      const offer = JSON.parse(offerStr) as RTCSessionDescriptionInit;
+      this.incomingCall = true;
+      this.remoteUserId = sendId;
       this.offerReceived.next({senderId: sendId, offer: offer});
     });
     
-    this.hubConnection.on("ReceiveAnswer",(sendId, answer)=>{
+    this.hubConnection.on("ReceiveAnswer",(sendId: string, answerStr: string)=>{
+      const answer = JSON.parse(answerStr) as RTCSessionDescription;
       this.answerReceived.next({senderId: sendId, answer: answer});
     });
 
@@ -61,7 +65,7 @@ export class VideoChatService {
   }
 
   sendIceCandidate(receiverId: string, candidate: RTCIceCandidate){
-    this.hubConnection?.invoke("ReceiveIceCandidate", receiverId, JSON.stringify(candidate))
+    this.hubConnection?.invoke("SendIceCandidate", receiverId, JSON.stringify(candidate));
   }
 
   sendEndCall(receiverId: string){
