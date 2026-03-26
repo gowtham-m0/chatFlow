@@ -34,11 +34,17 @@ export class VideoChat implements OnInit, OnDestroy {
   cameraUnavailable = false;
   cameraErrorMessage = '';
 
+  /**
+   * ICE candidates that arrive before setRemoteDescription is called
+   * must be buffered and replayed afterward — otherwise WebRTC silently
+   * discards them and ICE negotiation never completes → "failed" state.
+   */
+  private pendingIceCandidates: RTCIceCandidateInit[] = [];
+  private remoteDescriptionSet = false;
+
   private subscriptions: Subscription[] = [];
 
   ngOnInit(): void {
-    // startConnection is now idempotent — safe to call every time the dialog opens
-    this.signalRService.startConnection();
     this.setupPeerConnection();
     this.setupSignalListeners();
     this.startLocalVideo();
@@ -51,37 +57,40 @@ export class VideoChat implements OnInit, OnDestroy {
   // ─── SignalR listeners ──────────────────────────────────────────────────────
 
   setupSignalListeners() {
-    // Register 'CallEnded' directly on the hub connection if it exists
     this.signalRService.hubConnection?.on('CallEnded', () => {
       this.endCall();
     });
 
+    // Apply the answer once it arrives
     const answerSub = this.signalRService.answerReceived.subscribe(async data => {
-      if (data) {
-        try {
-          // Only process if peer connection is in the right state
-          if (
-            this.peerConnection.signalingState === 'have-local-offer' ||
-            this.peerConnection.signalingState === 'have-remote-pranswer'
-          ) {
-            await this.peerConnection.setRemoteDescription(new RTCSessionDescription(data.answer));
-          }
-        } catch (e) {
-          console.error('Error setting remote description (answer):', e);
+      if (!data) return;
+      try {
+        if (
+          this.peerConnection.signalingState === 'have-local-offer' ||
+          this.peerConnection.signalingState === 'have-remote-pranswer'
+        ) {
+          await this.peerConnection.setRemoteDescription(new RTCSessionDescription(data.answer));
+          this.remoteDescriptionSet = true;
+          await this._flushPendingCandidates();
         }
+      } catch (e) {
+        console.error('Error setting remote description (answer):', e);
       }
     });
 
+    // Buffer ICE candidates until remote description is ready
     const iceSub = this.signalRService.iceCandidateReceived.subscribe(async data => {
-      if (data) {
+      if (!data) return;
+      if (this.remoteDescriptionSet) {
         try {
-          // Only add ICE candidates once remote description is set
-          if (this.peerConnection.remoteDescription) {
-            await this.peerConnection.addIceCandidate(new RTCIceCandidate(data.candidate));
-          }
+          await this.peerConnection.addIceCandidate(new RTCIceCandidate(data.candidate));
         } catch (e) {
           console.error('Error adding ICE candidate:', e);
         }
+      } else {
+        // Queue it — will be flushed after setRemoteDescription
+        console.log('Buffering ICE candidate (remote desc not set yet)');
+        this.pendingIceCandidates.push(data.candidate);
       }
     });
 
@@ -107,6 +116,10 @@ export class VideoChat implements OnInit, OnDestroy {
 
     try {
       await this.peerConnection.setRemoteDescription(new RTCSessionDescription(offer));
+      this.remoteDescriptionSet = true;
+      // Flush any ICE candidates that arrived before we had the remote description
+      await this._flushPendingCandidates();
+
       const answer = await this.peerConnection.createAnswer();
       await this.peerConnection.setLocalDescription(answer);
       this.signalRService.sendAnswer(this.signalRService.remoteUserId, answer);
@@ -141,13 +154,13 @@ export class VideoChat implements OnInit, OnDestroy {
 
     this.signalRService.isCallActive = false;
     this.signalRService.incomingCall = false;
+    this.signalRService.offerReceived.next(null);  // reset so next call is fresh
     this.signalRService.sendEndCall(this.signalRService.remoteUserId);
     this.signalRService.remoteUserId = '';
 
     this.dialogRef.close();
   }
 
-  /** Close dialog when camera is unavailable — no active call to clean up. */
   closeDialog() {
     this.dialogRef.close();
   }
@@ -160,6 +173,7 @@ export class VideoChat implements OnInit, OnDestroy {
         { urls: 'stun:stun.l.google.com:19302' },
         { urls: 'stun:stun1.l.google.com:19302' },
         { urls: 'stun:stun2.l.google.com:19302' },
+        { urls: 'stun:stun3.l.google.com:19302' },
       ],
     });
 
@@ -182,6 +196,10 @@ export class VideoChat implements OnInit, OnDestroy {
     this.peerConnection.onsignalingstatechange = () => {
       console.log('Signaling state:', this.peerConnection.signalingState);
     };
+
+    this.peerConnection.oniceconnectionstatechange = () => {
+      console.log('ICE connection state:', this.peerConnection.iceConnectionState);
+    };
   }
 
   async startLocalVideo() {
@@ -190,7 +208,7 @@ export class VideoChat implements OnInit, OnDestroy {
 
       if (this.localVideo?.nativeElement) {
         this.localVideo.nativeElement.srcObject = stream;
-        // CRITICAL: mute local playback so you don't hear yourself
+        // Must mute so you don't hear your own mic through the speaker
         this.localVideo.nativeElement.muted = true;
         this.localVideo.nativeElement.volume = 0;
       }
@@ -215,6 +233,19 @@ export class VideoChat implements OnInit, OnDestroy {
   }
 
   // ─── Helpers ────────────────────────────────────────────────────────────────
+
+  /** Add all buffered ICE candidates after remote description is set. */
+  private async _flushPendingCandidates() {
+    console.log(`Flushing ${this.pendingIceCandidates.length} buffered ICE candidate(s)`);
+    for (const candidate of this.pendingIceCandidates) {
+      try {
+        await this.peerConnection.addIceCandidate(new RTCIceCandidate(candidate));
+      } catch (e) {
+        console.error('Error flushing buffered ICE candidate:', e);
+      }
+    }
+    this.pendingIceCandidates = [];
+  }
 
   private _stopLocalStream() {
     const videoEl = this.localVideo?.nativeElement;
