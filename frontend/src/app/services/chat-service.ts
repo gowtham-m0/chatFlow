@@ -28,18 +28,22 @@ export class ChatService {
 
   startConnection(token: string, senderId?: string) {
 
-    if(this.hubConnection?.state === HubConnectionState.Connected)
-        return;
+    // Block if already connected, connecting, or reconnecting — not just Connected
+    if (
+      this.hubConnection?.state === HubConnectionState.Connected ||
+      this.hubConnection?.state === HubConnectionState.Connecting ||
+      this.hubConnection?.state === HubConnectionState.Reconnecting
+    ) return;
 
-    if(this.hubConnection){
+    if (this.hubConnection) {
       this.hubConnection.off('Notify');
       this.hubConnection.off('NotifyTypingToUser');
       this.hubConnection.off('OnlineUsers');
       this.hubConnection.off('ReceiveMessageList');
       this.hubConnection.off('ReceiveMessage');
       this.hubConnection.off('MessagesRead');
-
     }
+
 
     this.hubConnection = new HubConnectionBuilder()
       .withUrl(`${this.hubUrl}?senderId=${senderId || ''}`, {
