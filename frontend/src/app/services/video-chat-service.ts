@@ -10,7 +10,7 @@ import { BehaviorSubject } from 'rxjs';
 
 export class VideoChatService {
   
-  private hubUrl = environment.apiUrl + 'hubs/video';
+  private hubUrl = environment.apiUrl + '/hubs/video';
   public hubConnection?: HubConnection;
   private authService = inject(AuthService);
   public offerReceived = new BehaviorSubject<{senderId: string, offer: RTCSessionDescriptionInit}|null>(null);
@@ -26,34 +26,49 @@ export class VideoChatService {
 
     
 
+  /** Connect only once; safe to call multiple times. */
   startConnection(){
+    // Already connected or connecting — don't create a second connection
+    if (this.hubConnection) return;
+
+    const token = this.authService.getAccessToken;
+    if (!token) {
+      console.warn('VideoChatService: no access token, skipping SignalR connection');
+      return;
+    }
+
     this.hubConnection = new HubConnectionBuilder()
-      .withUrl(this.hubUrl,{
-        accessTokenFactory: () => this.authService.getAccessToken!
+      .withUrl(this.hubUrl, {
+        accessTokenFactory: () => token
       })
       .withAutomaticReconnect()
       .build();
 
     this.hubConnection
       .start()
-      .catch((err)=> console.error("SignalRConnectionError",err));
+      .then(() => console.log('Video SignalR connected'))
+      .catch((err) => console.error('SignalRConnectionError', err));
 
-    this.hubConnection.on("ReceiveOffer",(sendId: string, offerStr: string)=>{
+    this.hubConnection.on('ReceiveOffer', (sendId: string, offerStr: string) => {
       const offer = JSON.parse(offerStr) as RTCSessionDescriptionInit;
       this.incomingCall = true;
       this.remoteUserId = sendId;
-      this.offerReceived.next({senderId: sendId, offer: offer});
-    });
-    
-    this.hubConnection.on("ReceiveAnswer",(sendId: string, answerStr: string)=>{
-      const answer = JSON.parse(answerStr) as RTCSessionDescription;
-      this.answerReceived.next({senderId: sendId, answer: answer});
+      this.offerReceived.next({ senderId: sendId, offer: offer });
     });
 
-    this.hubConnection.on("ReceiveIceCandidate",(sendId, candidate)=>{
-      this.iceCandidateReceived.next({senderId: sendId, candidate: JSON.parse(candidate)});
-    
-    })
+    this.hubConnection.on('ReceiveAnswer', (sendId: string, answerStr: string) => {
+      const answer = JSON.parse(answerStr) as RTCSessionDescription;
+      this.answerReceived.next({ senderId: sendId, answer: answer });
+    });
+
+    this.hubConnection.on('ReceiveIceCandidate', (sendId: string, candidate: string) => {
+      this.iceCandidateReceived.next({ senderId: sendId, candidate: JSON.parse(candidate) });
+    });
+  }
+
+  stopConnection(){
+    this.hubConnection?.stop();
+    this.hubConnection = undefined;
   }
 
   sendOffer(receiverId: string, offer:RTCSessionDescriptionInit){
