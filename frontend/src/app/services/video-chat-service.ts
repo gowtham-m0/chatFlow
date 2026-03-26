@@ -31,15 +31,15 @@ export class VideoChatService {
     // Already connected or connecting — don't create a second connection
     if (this.hubConnection) return;
 
-    const token = this.authService.getAccessToken;
-    if (!token) {
+    if (!this.authService.getAccessToken) {
       console.warn('VideoChatService: no access token, skipping SignalR connection');
       return;
     }
 
     this.hubConnection = new HubConnectionBuilder()
       .withUrl(this.hubUrl, {
-        accessTokenFactory: () => token
+        // Use a factory so the latest token is fetched on every connect/reconnect
+        accessTokenFactory: () => this.authService.getAccessToken ?? ''
       })
       .withAutomaticReconnect()
       .build();

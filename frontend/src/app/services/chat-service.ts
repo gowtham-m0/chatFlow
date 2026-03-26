@@ -28,6 +28,12 @@ export class ChatService {
 
   startConnection(token: string, senderId?: string) {
 
+    // Block if token is missing
+    if (!token) {
+      console.warn('ChatService: no access token, skipping SignalR connection');
+      return;
+    }
+
     // Block if already connected, connecting, or reconnecting — not just Connected
     if (
       this.hubConnection?.state === HubConnectionState.Connected ||
@@ -47,7 +53,8 @@ export class ChatService {
 
     this.hubConnection = new HubConnectionBuilder()
       .withUrl(`${this.hubUrl}?senderId=${senderId || ''}`, {
-        accessTokenFactory: () => token,
+        // Use a factory so the latest token is always provided (e.g. on reconnect)
+        accessTokenFactory: () => this.authService.getAccessToken ?? token,
       })
       .withAutomaticReconnect()
       .build();

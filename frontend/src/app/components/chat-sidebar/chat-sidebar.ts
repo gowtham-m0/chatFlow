@@ -24,7 +24,8 @@ export class ChatSidebar implements OnInit {
   }
 
   ngOnInit(): void {
-    this.chatService.startConnection(this.authService.getAccessToken!, this.authService.currentLoggedUser?.id);
+    this.chatService.startConnection(this.authService.getAccessToken ?? '', this.authService.currentLoggedUser?.id);
+
   }
 
   openChatWindow(user: User) {
