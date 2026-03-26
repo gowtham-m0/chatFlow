@@ -3,6 +3,9 @@ import { ChatService } from '../../services/chat-service';
 import { TitleCasePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ChatBox } from '../chat-box/chat-box';
+import { VideoChatService } from '../../services/video-chat-service';
+import { MatDialog } from '@angular/material/dialog';
+import { VideoChat } from '../video-chat/video-chat';
 
 @Component({
   selector: 'app-chat-window',
@@ -15,6 +18,8 @@ export class ChatWindow {
   @ViewChild('chatBox') chatContainer?: ElementRef;
 
   chatService = inject(ChatService);
+  signalRService = inject(VideoChatService);
+  dialog = inject(MatDialog);
   message: string = '';
 
   sendMessage() {
@@ -27,6 +32,16 @@ export class ChatWindow {
   closeChat() {
     this.chatService.currentOpenedChat.set(null);
     this.chatService.chatMessages.set([]);
+  }
+
+  displayDialog(receiverId: string){
+    this.signalRService.remoteUserId = receiverId;
+    this.dialog.open(VideoChat,{
+      width: "400px",
+      height: "600px",
+      disableClose: true,
+      autoFocus: false
+    })
   }
 
   private scrollToBottom(){
