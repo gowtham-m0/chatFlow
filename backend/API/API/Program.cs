@@ -93,16 +93,19 @@ using (var scope = app.Services.CreateScope())
 
 app.UseCors("CorsPolicy");
 
-app.UseAuthentication();
-app.UseAuthorization();
 app.UseDefaultFiles();
 app.UseStaticFiles();
-app.MapFallbackToFile("index.html");
-app.MapHub<ChatHub>("/hubs/chat");
-app.MapHub<VideoChatHub>("/hubs/video");
-
+app.UseRouting(); 
+app.UseCors("CorsPolicy");
+app.UseAuthentication();
+app.UseAuthorization();
 
 app.MapAccountEndpoint();
+app.MapHub<ChatHub>("/hubs/chat");
+app.MapHub<VideoChatHub>("/hubs/video");
+app.MapFallbackToFile("index.html");
+
+
 
 var port = Environment.GetEnvironmentVariable("PORT") ?? "80";
 app.Run($"http://0.0.0.0:{port}");
