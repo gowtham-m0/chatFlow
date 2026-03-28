@@ -1,5 +1,4 @@
 import { inject, Injectable } from '@angular/core';
-import { environment } from '../../environments/environment';
 import { HubConnection, HubConnectionBuilder } from '@microsoft/signalr';
 import { AuthService } from './auth-service';
 import { BehaviorSubject } from 'rxjs';
@@ -10,7 +9,7 @@ import { BehaviorSubject } from 'rxjs';
 
 export class VideoChatService {
   
-  private hubUrl = environment.apiUrl + '/hubs/video';
+  private hubUrl = '/hubs/video';
   public hubConnection?: HubConnection;
   private authService = inject(AuthService);
   public offerReceived = new BehaviorSubject<{senderId: string, offer: RTCSessionDescriptionInit}|null>(null);

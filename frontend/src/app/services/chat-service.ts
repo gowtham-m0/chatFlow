@@ -9,7 +9,7 @@ import { Message } from '../models/message';
 })
 export class ChatService {
   private authService = inject(AuthService);
-  private hubUrl = 'https://localhost:5000/hubs/chat';
+  private hubUrl = '/hubs/chat';
 
   onlineUsers = signal<User[]>([]);
   chatMessages = signal<Message[]>([]);

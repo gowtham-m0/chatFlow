@@ -1,0 +1,20 @@
+# Node modules (will be installed fresh in Docker)
+frontend/node_modules/
+frontend/.angular/
+frontend/dist/
+
+# .NET build artifacts
+backend/**/bin/
+backend/**/obj/
+backend/**/.vs/
+
+# SQLite db files (not needed in image, volume or env manages data)
+backend/**/*.db
+backend/**/*.db-shm
+backend/**/*.db-wal
+
+# Git / IDE
+.git/
+.github/
+.vscode/
+**/*.user

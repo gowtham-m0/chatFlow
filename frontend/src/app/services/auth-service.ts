@@ -10,7 +10,7 @@ import { User } from '../models/user';
 
 export class AuthService {
   
-  private baseUrl = 'https://localhost:5000/api/account';
+  private baseUrl = '/api/account';
   private token = "token";
   
   private httpClient = inject(HttpClient);
