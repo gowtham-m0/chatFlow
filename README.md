@@ -112,6 +112,8 @@ RealTime Chat Application/
 ---
 
 ## 🐝 Known Limitations / Future Improvements
+- **Database Persistence (Render Free Tier)**:
+   The application currently uses SQLite as its database. When deployed on the free tier of Render, the filesystem is ephemeral, meaning that data is not persisted across container restarts or idle shutdowns. As a result, user data (such as registered accounts and messages) may be reset after some time(Move to postgres if you want to avoid it).
 - **Group Video Calls**: Currently, video calls are 1-on-1.
 - **Screen Sharing**: Implement screen sharing within video calls.
 - **File Transfers**: Add support for sending large files via WebRTC data channels.
